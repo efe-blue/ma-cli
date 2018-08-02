@@ -4,10 +4,7 @@
 cli for miniapp
 
 ### 安装
-1. 克隆到本地
-2. `cd` 到项目根目录
-3. `npm install`
-4. windows: `npm link`; mac: `sudo npm link`
+`npm install -g mapp-cli`
 
 ### 使用
 * 初始化命令
