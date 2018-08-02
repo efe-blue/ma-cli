@@ -5,7 +5,7 @@
 
 Page({
     data: {
-        name: 'swan'
+        name: 'Hello world!'
     },
     onLoad() {
 

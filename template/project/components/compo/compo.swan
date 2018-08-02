@@ -1,0 +1,4 @@
+<!-- 自定义组件内部的模板 -->
+<view class="name" bindtap="tap">
+    {{name}}{{age}}
+</view>

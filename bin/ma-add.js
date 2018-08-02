@@ -165,7 +165,7 @@ exports = module.exports = (subPackage, program) => {
     let isPage = !!program.page;
     // 模板路径
     let src = path.resolve(__dirname,
-        `../template/project/${isPage ? 'pages' : 'components'}/${isPage ? 'home' : 'compo'}`);
+        `../template/project/${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
 
     let dirName = isPage ? (subPackage || 'pages') : 'components';
     let fileName = program.page || program.component;
