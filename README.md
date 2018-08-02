@@ -1,4 +1,8 @@
-# ma-s-cli 脚手架
+# ma-cli
+
+小程序脚手架创建工具
+cli for miniapp
+
 ### 安装
 1. 克隆到本地
 2. `cd` 到项目根目录
