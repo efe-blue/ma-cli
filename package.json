@@ -1,6 +1,6 @@
 {
-  "name": "ma-cli",
-  "version": "1.0.0",
+  "name": "mapp-cli",
+  "version": "1.0.3",
   "description": "\"ma-cli\" cli for miniapp",
   "bin": {
     "ma": "bin/ma.js"
