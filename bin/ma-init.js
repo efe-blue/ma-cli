@@ -4,10 +4,13 @@
  * @author wangning
  */
 
+const home = require('user-home');
 const inquirer = require('inquirer');
 const generator = require('../lib/generator.js');
 const path = require('path');
 const utils = require('../lib/util.js');
+const download = require('../lib/download.js');
+const rm = require('rimraf').sync;
 
 /**
  * 初始化项目
@@ -21,19 +24,26 @@ module.exports = function (projectName, program) {
         utils.log(`创建失败：${projectName}已存在`, 'ERROR');
         return;
     }
+    if (!program.template) {
+        utils.log('您未指定模板，将默认使用官方空模板', 'WARNING');
+    }
 
+    const templateName = program.template || 'empty';
+    const tempFilesPath = path.join(home, '.ma-templates', templateName.replace(/\//g, '-'));
 
-    let prompter = inquirer.prompt([
-        {
-            name: 'appid',
-            message: '请输入appid'
-        }
-    ]);
 
     init();
 
     function init() {
-        prompter.then(answers => {
+        fetchTemplate()
+            .then(() => {
+                return inquirer.prompt([
+                    {
+                        name: 'appid',
+                        message: '请输入appid'
+                    }
+                ]);
+            }).then(answers => {
             const metadata = {
                 projectName,
                 appid: answers.appid
@@ -41,13 +51,33 @@ module.exports = function (projectName, program) {
 
             return generator(
                 metadata,
-                path.resolve(__dirname, '../template/project'),
+                tempFilesPath,
                 `${process.cwd()}/${projectName}`
             );
         }).then(() => {
             utils.log('创建成功', 'SUCCESS');
         }).catch(err => {
-            console.error(`创建失败：${err}`, 'ERROR');
+            utils.log(`创建失败：${err}`, 'ERROR');
         });
+    }
+
+    function fetchTemplate() {
+        if (utils.isExist(tempFilesPath)) {
+            rm(tempFilesPath);
+        }
+        return new Promise((resolve, reject) => {
+            download.downloadOfficialZip(templateName, tempFilesPath, {extract: true})
+                .then(() => {
+                    resolve();
+                })
+                .catch(e => {
+                    if (e.statusCode === 404) {
+                        reject(`无法识别模板名称${templateName}`);
+                    } else if (e) {
+                        reject(`无法下载模板${templateName}`);
+                    }
+                });
+        });
+
     }
 };
