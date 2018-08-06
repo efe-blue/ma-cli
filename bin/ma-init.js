@@ -17,8 +17,11 @@ const rm = require('rimraf').sync;
  * @param {string} projectName 初始化项目所在的文件夹名
  * @param {Object} program 命令行对象
  */
-module.exports = function (projectName, program) {
-
+module.exports = function (projectName = 'dist', program) {
+    if (!program) {
+        program = projectName;
+        projectName = null;
+    }
     // 当前命令目录下，判断是否已存在projectName
     if (utils.isExist(`${process.cwd()}/${projectName}`)) {
         utils.log(`创建失败：${projectName}已存在`, 'ERROR');
@@ -29,7 +32,7 @@ module.exports = function (projectName, program) {
     }
 
     const templateName = program.template || 'empty';
-    const tempFilesPath = path.join(home, '.ma-templates', templateName.replace(/\//g, '-'));
+    const tempFilesPath = path.join(home, '.ma-templates');
 
 
     init();
@@ -44,21 +47,21 @@ module.exports = function (projectName, program) {
                     }
                 ]);
             }).then(answers => {
-            const metadata = {
-                projectName,
-                appid: answers.appid
-            };
+                const metadata = {
+                    projectName,
+                    appid: answers.appid
+                };
 
-            return generator(
-                metadata,
-                tempFilesPath,
-                `${process.cwd()}/${projectName}`
-            );
-        }).then(() => {
-            utils.log('创建成功', 'SUCCESS');
-        }).catch(err => {
-            utils.log(`创建失败：${err}`, 'ERROR');
-        });
+                return generator(
+                    metadata,
+                    tempFilesPath,
+                    `${process.cwd()}/${projectName}`
+                );
+            }).then(() => {
+                utils.log('创建成功', 'SUCCESS');
+            }).catch(err => {
+                utils.log(`创建失败：${err}`, 'ERROR');
+            });
     }
 
     function fetchTemplate() {
@@ -66,7 +69,7 @@ module.exports = function (projectName, program) {
             rm(tempFilesPath);
         }
         return new Promise((resolve, reject) => {
-            download.downloadOfficialZip(templateName, tempFilesPath, {extract: true})
+            download.downloadOfficialZip(templateName, tempFilesPath, { extract: true })
                 .then(() => {
                     resolve();
                 })

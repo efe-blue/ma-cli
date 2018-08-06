@@ -9,6 +9,7 @@ const rm = require('rimraf').sync;
 const util = require('../lib/util');
 // node path模块
 const path = require('path');
+const home = require('user-home');
 
 function add(isPage, appJsonPath, fileName, src, dest, subPackage) {
     try {
@@ -164,8 +165,9 @@ exports = module.exports = (subPackage, program) => {
 
     let isPage = !!program.page;
     // 模板路径
-    let src = path.resolve(__dirname,
-        `../template/project/${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
+    let tempFilesPath = path.join(home, '.ma-templates');
+    let src = path.resolve(tempFilesPath,
+        `empty/${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
 
     let dirName = isPage ? (subPackage || 'pages') : 'components';
     let fileName = program.page || program.component;
