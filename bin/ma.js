@@ -16,11 +16,11 @@ program
 
 // 初始化命令 新建项目 action可拿到的参数为 project-name 和 program
 program
-    .command('init <project-name>')
+    .command('init [project-name]')
     .description('generate a new project')
     .action(require('./ma-init'))
     .usage('[options] <project-name>')
-    .option('-t,--template <template-name>', 'generate a new project from a template')
+    .option('-t,--template <template-name> [project-name]', 'generate a new project from a template')
     .on('--help', () => {
         console.log();
         console.log('  Example:');
@@ -76,13 +76,12 @@ program
         console.log();
     });
 
-// program
-// 	.command('list')
-// 	.description('List all the templates')
-// 	.alias('l')
-// 	.action(() => {
-// 		require('../command/list')();
-// 	});
+program
+	.command('list')
+	.description('List all the templates')
+	.alias('l')
+    .action(require('./ma-list'))
+    .option('-g, --github', 'list all registered github projects');
 
 
 // 参数处理
