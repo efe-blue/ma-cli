@@ -8,10 +8,10 @@ cli for miniapp
 
 ### 使用
 * 初始化命令
->`ma init <project-name>`
+>`ma init <project-name> -t <template-name>`
 >
 >**说明：**
->1. 参数：`project-name`--项目名
+>1. 参数：`project-name`--项目名  `template-name`--模板名
 
 * 新增命令（确保运行环境处于项目根目录）
 >`ma add [options]`
