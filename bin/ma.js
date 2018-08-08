@@ -62,14 +62,14 @@ program
     .command('upgrade')
     .description('upgrade to the latest version')
     .action(require('./ma-upgrade'))
-    .option('--swan', 'upgrade swan')
+    .option('--ma', 'upgrade ma')
     .option('--cli', 'upgrade cli')
     .on('--help', () => {
         console.log();
         console.log('  Example:');
         console.log();
-        console.log(chalk.gray('   # upgrade swan'));
-        console.log('  $ ma upgrade --swan');
+        console.log(chalk.gray('   # upgrade ma'));
+        console.log('  $ ma upgrade --ma');
         console.log();
         console.log(chalk.gray('   # upgrade cli'));
         console.log('  $ ma upgrade --cli');
