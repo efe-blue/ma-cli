@@ -6,7 +6,9 @@ const expect = require('chai').expect;
 
 const utils = require('../lib/util.js');
 const fo = require('../lib/file');
-const info = require('../lib/info');
+const consoleLog = require('../lib/log');
+const formateDate = require('../lib/date');
+const interact = require('../lib/interaction');
 
 describe('utils.isFunction -判断变量是否是函数', function () {
     it('传非函数变量应返回false', function () {
@@ -188,61 +190,61 @@ describe('fo.writeFile -向文件写数据', function () {
 
 });
 
-describe('info.datetime -格式化时间', function () {
+describe('date.formateDate -格式化时间', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            info.datetime(new Date(), 'YYYY:MM:DD:HH:mm:ss');
+            formateDate(new Date(), 'YYYY:MM:DD:HH:mm:ss');
         }).to.not.throw();
     });
 
     it('传正确参数，返回string', function () {
-        expect(info.datetime(new Date(), 'YYYY:MM:DD:HH:mm:ss')).to.be.a('string');
+        expect(formateDate(new Date(), 'YYYY:MM:DD:HH:mm:ss')).to.be.a('string');
     });
 
 
 });
 
 
-describe('info.log -输出', function () {
+describe('log.consoleLog -输出', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            info.log('message', 'ERROR', false);
+            consoleLog('message', 'ERROR', false);
         }).to.not.throw();
         expect(() => {
-            info.log('message', 'WARNING', false);
+            consoleLog('message', 'WARNING', false);
         }).to.not.throw();
         expect(() => {
-            info.log('message', 'SUCCESS', false);
+            consoleLog('message', 'SUCCESS', false);
         }).to.not.throw();
         expect(() => {
-            info.log('message', '', false);
+            consoleLog('message', '', false);
         }).to.not.throw();
     });
 
 });
 
-describe('info.interactive -交互操作', function () {
+describe('interaction.interact -交互操作', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            info.interactive('message', 'ERROR');
+            interact('message', 'ERROR');
         }).to.not.throw();
     });
 
     it('type传非string类型，不应报错', function () {
         expect(() => {
-            info.interactive('message', []);
+            interact('message', []);
         }).to.not.throw();
         expect(() => {
-            info.interactive('message', {});
+            interact('message', {});
         }).to.not.throw();
         expect(() => {
-            info.interactive('message', null);
+            interact('message', null);
         }).to.not.throw();
         expect(() => {
-            info.interactive('message', undefined);
+            interact('message', undefined);
         }).to.not.throw();
     });
 });
