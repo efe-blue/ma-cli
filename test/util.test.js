@@ -5,6 +5,10 @@
 const expect = require('chai').expect;
 
 const utils = require('../lib/util.js');
+const fo = require('../lib/file');
+const consoleLog = require('../lib/log');
+const formateDate = require('../lib/date');
+const interact = require('../lib/interaction');
 
 describe('utils.isFunction -判断变量是否是函数', function () {
     it('传非函数变量应返回false', function () {
@@ -123,33 +127,33 @@ describe('utils.isExist -判断路径是否存在', function () {
 });
 
 
-describe('utils.readFile -读文件', function () {
+describe('fo.readFile -读文件', function () {
 
     it('传正确路径和数据，应返回stirng或buffer类型', function () {
-        expect(utils.readFile(`${__dirname}/example/text`)).to.satisfy(res => {
+        expect(fo.readFile(`${__dirname}/example/text`)).to.satisfy(res => {
             return typeof res === 'string' || res instanceof Buffer;
         });
     });
 
 
     it('传错误路径参数，应返回null', function () {
-        expect(utils.readFile('')).to.be.a('null');
-        expect(utils.readFile(null)).to.be.a('null');
-        expect(utils.readFile(undefined)).to.be.a('null');
-        expect(utils.readFile([])).to.be.a('null');
-        expect(utils.readFile({})).to.be.a('null');
-        expect(utils.readFile(1)).to.be.a('null');
+        expect(fo.readFile('')).to.be.a('null');
+        expect(fo.readFile(null)).to.be.a('null');
+        expect(fo.readFile(undefined)).to.be.a('null');
+        expect(fo.readFile([])).to.be.a('null');
+        expect(fo.readFile({})).to.be.a('null');
+        expect(fo.readFile(1)).to.be.a('null');
     });
 
 
 });
 
 
-describe('utils.writeFile -向文件写数据', function () {
+describe('fo.writeFile -向文件写数据', function () {
 
     it('传正确路径和数据，不应报错', function () {
         expect(() => {
-            utils.writeFile(`${__dirname}/example/text`, 'abc');
+            fo.writeFile(`${__dirname}/example/text`, 'abc');
         }).to.not.throw();
     });
 
@@ -157,90 +161,90 @@ describe('utils.writeFile -向文件写数据', function () {
     it('传错误路径参数，应报错', function () {
 
         expect(() => {
-            utils.writeFile('', '');
+            fo.writeFile('', '');
         }).to.throw();
 
         expect(() => {
-            utils.writeFile(null, '');
+            fo.writeFile(null, '');
         }).to.throw();
 
         expect(() => {
-            utils.writeFile(undefined, '');
+            fo.writeFile(undefined, '');
         }).to.throw();
         expect(() => {
-            utils.writeFile(NaN, '');
-        }).to.throw();
-
-        expect(() => {
-            utils.writeFile({}, '');
+            fo.writeFile(NaN, '');
         }).to.throw();
 
         expect(() => {
-            utils.writeFile([], '');
+            fo.writeFile({}, '');
         }).to.throw();
 
         expect(() => {
-            utils.writeFile('?', '');
+            fo.writeFile([], '');
+        }).to.throw();
+
+        expect(() => {
+            fo.writeFile('?', '');
         }).to.throw();
     });
 
 });
 
-describe('utils.datetime -格式化时间', function () {
+describe('date.formateDate -格式化时间', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            utils.datetime(new Date(), 'YYYY:MM:DD:HH:mm:ss');
+            formateDate(new Date(), 'YYYY:MM:DD:HH:mm:ss');
         }).to.not.throw();
     });
 
     it('传正确参数，返回string', function () {
-        expect(utils.datetime(new Date(), 'YYYY:MM:DD:HH:mm:ss')).to.be.a('string');
+        expect(formateDate(new Date(), 'YYYY:MM:DD:HH:mm:ss')).to.be.a('string');
     });
 
 
 });
 
 
-describe('utils.log -输出', function () {
+describe('log.consoleLog -输出', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            utils.log('message', 'ERROR', false);
+            consoleLog('message', 'ERROR', false);
         }).to.not.throw();
         expect(() => {
-            utils.log('message', 'WARNING', false);
+            consoleLog('message', 'WARNING', false);
         }).to.not.throw();
         expect(() => {
-            utils.log('message', 'SUCCESS', false);
+            consoleLog('message', 'SUCCESS', false);
         }).to.not.throw();
         expect(() => {
-            utils.log('message', '', false);
+            consoleLog('message', '', false);
         }).to.not.throw();
     });
 
 });
 
-describe('utils.interactive -交互操作', function () {
+describe('interaction.interact -交互操作', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            utils.interactive('message', 'ERROR');
+            interact('message', 'ERROR');
         }).to.not.throw();
     });
 
     it('type传非string类型，不应报错', function () {
         expect(() => {
-            utils.interactive('message', []);
+            interact('message', []);
         }).to.not.throw();
         expect(() => {
-            utils.interactive('message', {});
+            interact('message', {});
         }).to.not.throw();
         expect(() => {
-            utils.interactive('message', null);
+            interact('message', null);
         }).to.not.throw();
         expect(() => {
-            utils.interactive('message', undefined);
+            interact('message', undefined);
         }).to.not.throw();
     });
 });

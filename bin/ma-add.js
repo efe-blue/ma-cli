@@ -7,6 +7,9 @@ const Metalsmith = require('metalsmith');
 const Handlebars = require('handlebars');
 const rm = require('rimraf').sync;
 const util = require('../lib/util');
+const fo = require('../lib/file');
+const consoleLog = require('../lib/log');
+const interact = require('../lib/interaction')
 // node path模块
 const path = require('path');
 const home = require('user-home');
@@ -15,7 +18,7 @@ function add(isPage, appJsonPath, fileName, src, dest, subPackage) {
     try {
         isPage && addAppConf(appJsonPath, fileName, subPackage);
         addFile(src, dest, fileName).then(() => {
-            util.log(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
+            consoleLog(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
         });
     }
     catch (err) {
@@ -24,7 +27,7 @@ function add(isPage, appJsonPath, fileName, src, dest, subPackage) {
 }
 
 function addAppConf(appJsonPath, fileName, subPackage) {
-    let appJsonData = JSON.parse(util.readFile(appJsonPath));
+    let appJsonData = JSON.parse(fo.readFile(appJsonPath));
     let routerPath = `pages/${fileName}/${fileName}`;
 
     // 主包配置写入
@@ -66,7 +69,7 @@ function addAppConf(appJsonPath, fileName, subPackage) {
         appJsonData.subPackages = conf;
     }
 
-    util.writeFile(appJsonPath, JSON.stringify(appJsonData, null, 4));
+    fo.writeFile(appJsonPath, JSON.stringify(appJsonData, null, 4));
 }
 
 function inArray(arr = [], item) {
@@ -159,7 +162,7 @@ exports = module.exports = (subPackage, program) => {
     let appJsonPath = path.resolve(process.cwd(), 'app.json');
 
     if (!util.isExist(appJsonPath)) {
-        util.log('请切换到工程根目录执行', 'info');
+        consoleLog('请切换到工程根目录执行', 'info');
         return;
     }
 
@@ -167,7 +170,7 @@ exports = module.exports = (subPackage, program) => {
     // 模板路径
     let tempFilesPath = path.join(home, '.ma-templates');
     let src = path.resolve(tempFilesPath,
-        `empty/${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
+        `${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
 
     let dirName = isPage ? (subPackage || 'pages') : 'components';
     let fileName = program.page || program.component;
@@ -179,7 +182,7 @@ exports = module.exports = (subPackage, program) => {
         return;
     }
 
-    util.interactive('文件已存在，是否覆盖？', 'confirm')
+    interact('文件已存在，是否覆盖？', 'confirm')
         .then(answer => {
             answer.ans && add(isPage, appJsonPath, fileName, src, dest, subPackage);
         });

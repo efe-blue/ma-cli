@@ -27,6 +27,28 @@ cli for miniapp
 >`ma add -c <component-name>`
 >1. 参数：`component-name`--新增组件名
 
+* 模板列表命令
+>`ma list|l [options]`
+>
+>**说明**
+>
+>`ma list|l`
+>1. 默认列出官方模板和可用 github 模版
+>
+>`ma list|l --github`
+>1. 仅列出 github 模板
+
+* 更行命令
+>`ma upgrade [options]`
+>
+>**说明**
+>
+>`ma upgrade --ma`
+>1. 更新脚手架工具
+>
+>`ma upgrade --cli`
+>1. 更新模板
+
 ### 自动测试说明
 1. `npm install -g mocha` 全局安装mocha测试框架
 2. 在项目根目录执行`mocha` ,即可自动运行test文件夹下的所有测试脚本
