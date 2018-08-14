@@ -53,14 +53,14 @@ module.exports = function (projectName = 'dist', program) {
 
             return generator(
                 metadata,
-                tempFilesPath,
+                path.join(tempFilesPath, templateName),
                 `${process.cwd()}/${projectName}`
             );
         }).then(() => {
-            consoleLog('创建成功', 'SUCCESS');
-        }).catch(err => {
-            consoleLog(`创建失败：${err}`, 'ERROR');
-        });
+        consoleLog('创建成功', 'SUCCESS');
+    }).catch(err => {
+        consoleLog(`创建失败：${err}`, 'ERROR');
+    });
 };
 
 function fetchTemplate(templateName, tempFilesPath) {
