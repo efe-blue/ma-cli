@@ -158,8 +158,24 @@ exports = module.exports = (subPackage, program) => {
         return;
     }
 
+    // 模板配置项
+    let templateConfPath = path.join(process.cwd(), '.ma-cli/template.config.json');
+    let tmlConf = '';
+    try {
+        tmlConf = JSON.parse(fo.readFile(templateConfPath));
+    }
+    catch (err) {
+        consoleLog('请切换到工程根目录执行', 'info')
+        return;
+    }
+    if (!(tmlConf.pagesPath && tmlConf.compoPath && tmlConf.appJsonPath && tmlConf.name)) {
+        consoleLog('模板配置文件错误', 'error');
+        return;
+    }
     // 获取配置文件路径
-    let appJsonPath = path.resolve(process.cwd(), 'app.json');
+    let appJsonPath = path.resolve(process.cwd(), tmlConf.appJsonPath);
+    // 模板路径
+    let tempFilesPath = path.join(home, `.ma-templates/${tmlConf.name}`);
 
     if (!util.isExist(appJsonPath)) {
         consoleLog('请切换到工程根目录执行', 'info');
@@ -167,12 +183,12 @@ exports = module.exports = (subPackage, program) => {
     }
 
     let isPage = !!program.page;
-    // 模板路径
-    let tempFilesPath = path.join(home, '.ma-templates');
-    let src = path.resolve(tempFilesPath,
-        `${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
 
-    let dirName = isPage ? (subPackage || 'pages') : 'components';
+    let src = path.resolve(tempFilesPath,
+        `${isPage ? tmlConf.pagesPath : tmlConf.compoPath}/${isPage ? 'index' : 'compo'}`);
+
+    let subPackageDir = subPackage ? tmlConf.pagesPath.replace('pages', subPackage) : '';
+    let dirName = isPage ? (subPackageDir || tmlConf.pagesPath) : tmlConf.compoPath;
     let fileName = program.page || program.component;
     // 目标路径
     let dest = path.resolve(process.cwd(), `${dirName}/${fileName}`);
