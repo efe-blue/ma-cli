@@ -35,7 +35,7 @@ module.exports = function (projectName = 'dist', program) {
         consoleLog('您未指定模板，将默认使用官方原生模板', 'WARNING');
     }
 
-    const templateName = program.template || 'empty';
+    const templateName = program.template || 'origin';
     const tempFilesPath = path.join(home, '.ma-templates');
 
     fetchTemplate(templateName, tempFilesPath)
