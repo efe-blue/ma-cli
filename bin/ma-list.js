@@ -6,7 +6,7 @@
 const request = require('request');
 const ttyTable = require('tty-table');
 const ta = require('time-ago');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 
 exports = module.exports = (program) => {
     request({
@@ -16,12 +16,12 @@ exports = module.exports = (program) => {
         }
     }, (err, res, body) => {
         if (!body) {
-            consoleLog('Something wrong with your network', 'error');
+            log('Something wrong with your network', 'error');
             return;
         }
 
         if (body.message) {
-            consoleLog(body.messge, 'error');
+            log(body.messge, 'error');
             return;
         }
 
@@ -31,11 +31,11 @@ exports = module.exports = (program) => {
             official = body.official;
             github = body.github;
         } catch (e) {
-            consoleLog('Something wrong with your network', 'error');
+            log('Something wrong with your network', 'error');
         }
 
         if (!program.github && Array.isArray(official)) {
-            consoleLog('\n  Available official templates:\n', 'info');
+            log('\n  Available official templates:\n', 'info');
             /*
             official.forEach(repo => {
               console.log(
@@ -66,12 +66,12 @@ exports = module.exports = (program) => {
             let offical = ttyTable(tableHead, rows, {
                 borderStyle: 2
             });
-            consoleLog(`     e.g., ma init ${rows[0][0]} myproject`, 'info');
-            consoleLog(offical.render(), 'info');
+            log(`     e.g., ma init ${rows[0][0]} myproject`, 'info');
+            log(offical.render(), 'info');
         }
         
         if (Array.isArray(github) && github.length) {
-            consoleLog('  Available github projects:\n', 'info');
+            log('  Available github projects:\n', 'info');
 
             let tableHead = [
                 {
@@ -135,14 +135,14 @@ exports = module.exports = (program) => {
             let githubTable = ttyTable(tableHead, rows, {
                 borderStyle: 2
             });
-            consoleLog(`     e.g., ma init ${rows[0][0]} myproject`, 'info');
-            consoleLog(githubTable.render(), 'info');
+            log(`     e.g., ma init ${rows[0][0]} myproject`, 'info');
+            log(githubTable.render(), 'info');
 
             if (MAX_COUNT && github.length > MAX_COUNT) {
-                consoleLog(`  use 'ma list --github' to see all github projects`, 'info');
+                log(`  use 'ma list --github' to see all github projects`, 'info');
             }
             if (program.github) {
-                consoleLog(`  You can registe your project from here: https://github.com/efe-blue/ma_templates`, 'info');
+                log(`  You can registe your project from here: https://github.com/efe-blue/ma_templates`, 'info');
             }
             console.log('\n');
         }

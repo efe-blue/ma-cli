@@ -6,7 +6,7 @@ const expect = require('chai').expect;
 
 const utils = require('../lib/util.js');
 const fo = require('../lib/file');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 const formateDate = require('../lib/date');
 const interact = require('../lib/interaction');
 
@@ -206,20 +206,20 @@ describe('date.formateDate -格式化时间', function () {
 });
 
 
-describe('log.consoleLog -输出', function () {
+describe('log.log -输出', function () {
 
     it('传正确参数，不应报错', function () {
         expect(() => {
-            consoleLog('message', 'ERROR', false);
+            log('message', 'ERROR', false);
         }).to.not.throw();
         expect(() => {
-            consoleLog('message', 'WARNING', false);
+            log('message', 'WARNING', false);
         }).to.not.throw();
         expect(() => {
-            consoleLog('message', 'SUCCESS', false);
+            log('message', 'SUCCESS', false);
         }).to.not.throw();
         expect(() => {
-            consoleLog('message', '', false);
+            log('message', '', false);
         }).to.not.throw();
     });
 

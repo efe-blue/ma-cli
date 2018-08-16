@@ -8,7 +8,7 @@ const Handlebars = require('handlebars');
 const rm = require('rimraf').sync;
 const util = require('../lib/util');
 const fo = require('../lib/file');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 const interact = require('../lib/interaction')
 // node path模块
 const path = require('path');
@@ -18,7 +18,7 @@ function add(isPage, appJsonPath, fileName, src, dest, subPackage) {
     try {
         isPage && addAppConf(appJsonPath, fileName, subPackage);
         addFile(src, dest, fileName).then(() => {
-            consoleLog(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
+            log(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
         });
     }
     catch (err) {
@@ -160,16 +160,23 @@ exports = module.exports = (subPackage, program) => {
 
     // 模板配置项
     let templateConfPath = path.join(process.cwd(), '.ma-cli/template.config.json');
-    let tmlConf = '';
-    try {
-        tmlConf = JSON.parse(fo.readFile(templateConfPath));
-    }
-    catch (err) {
-        consoleLog('请切换到工程根目录执行', 'info')
+    if (!util.isExist(templateConfPath)) {
+        log('请切换到工程根目录执行', 'info');
         return;
     }
-    if (!(tmlConf.pagesPath && tmlConf.compoPath && tmlConf.appJsonPath && tmlConf.name)) {
-        consoleLog('模板配置文件错误', 'error');
+    let tmlConf = {};
+    try {
+        let tmlInfo = JSON.parse(fo.readFile(templateConfPath));
+        if (!tmlInfo.name) {
+            throw new Error();
+        }
+        tmlConf.name = tmlInfo.name;
+        tmlConf.pagesPath = tmlInfo.pagesPath || 'pages';
+        tmlConf.compoPath = tmlInfo.compoPath || 'components';
+        tmlConf.appJsonPath = tmlInfo.appJsonPath || 'app.json';
+    }
+    catch (err) {
+        log('模板配置文件错误', 'error');
         return;
     }
     // 获取配置文件路径
@@ -178,7 +185,7 @@ exports = module.exports = (subPackage, program) => {
     let tempFilesPath = path.join(home, `.ma-templates/${tmlConf.name}`);
 
     if (!util.isExist(appJsonPath)) {
-        consoleLog('请切换到工程根目录执行', 'info');
+        log('请切换到工程根目录执行', 'info');
         return;
     }
 
