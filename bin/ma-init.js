@@ -9,7 +9,7 @@ const inquirer = require('inquirer');
 const generator = require('../lib/generator.js');
 const path = require('path');
 const utils = require('../lib/util.js');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 const download = require('../lib/download.js');
 const rm = require('rimraf').sync;
 
@@ -27,12 +27,12 @@ module.exports = function (projectName = 'dist', program) {
 
     // 当前命令目录下，判断是否已存在projectName
     if (utils.isExist(`${process.cwd()}/${projectName}`)) {
-        consoleLog(`创建失败：${projectName}已存在`, 'ERROR');
+        log(`创建失败：${projectName}已存在`, 'ERROR');
         return;
     }
 
     if (!program.template) {
-        consoleLog('您未指定模板，将默认使用官方原生模板', 'WARNING');
+        log('您未指定模板，将默认使用官方原生模板', 'WARNING');
     }
 
     const templateName = program.template || 'origin';
@@ -57,9 +57,9 @@ module.exports = function (projectName = 'dist', program) {
                 `${process.cwd()}/${projectName}`
             );
         }).then(() => {
-        consoleLog('创建成功', 'SUCCESS');
+        log('创建成功', 'SUCCESS');
     }).catch(err => {
-        consoleLog(`创建失败：${err}`, 'ERROR');
+        log(`创建失败：${err}`, 'ERROR');
     });
 };
 

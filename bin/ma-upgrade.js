@@ -5,23 +5,23 @@
 
 const exec = require('child_process').exec;
 const ora = require('ora');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 
 /**
  * 升级swan
  */
 function upgradeSwan() {
-    let cmd = 'npm install mapp-cli --save';
-    consoleLog('升级中，可能需要几分钟, 请耐心等待...', 'info', true);
-    consoleLog('执行命令: ' + cmd, 'info', true);
+    let cmd = 'npm install mapp-cli -g';
+    log('升级中，可能需要几分钟, 请耐心等待...', 'info', true);
+    log('执行命令: ' + cmd, 'info', true);
     const spinner = ora('正在升级...\n');
     spinner.start();
     let fcmd = exec(cmd, () => {
         spinner.stop();
-        consoleLog('完成安装最新版本ma', 'success', true);
+        log('完成安装最新版本ma', 'success', true);
     });
     fcmd.stdout.on('data', (d) => {
-        consoleLog(d.substring(d, d.length - 1));
+        log(d.substring(d, d.length - 1));
     });
 }
 
@@ -30,9 +30,9 @@ function upgradeSwan() {
  */
 function upgradeCli() {
     let cmd = 'npm install swan-x-cli --save';
-    consoleLog('升级中，可能需要几分钟, 请耐心等待...', 'info', true);
-    consoleLog('执行命令: ' + cmd, 'info', true);
-    consoleLog('完成安装最新版本cli', 'success', true);
+    log('升级中，可能需要几分钟, 请耐心等待...', 'info', true);
+    log('执行命令: ' + cmd, 'info', true);
+    log('完成安装最新版本cli', 'success', true);
 }
 
 exports = module.exports = program => {

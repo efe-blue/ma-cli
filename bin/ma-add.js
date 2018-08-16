@@ -8,7 +8,7 @@ const Handlebars = require('handlebars');
 const rm = require('rimraf').sync;
 const util = require('../lib/util');
 const fo = require('../lib/file');
-const consoleLog = require('../lib/log');
+const log = require('../lib/log');
 const interact = require('../lib/interaction')
 // node path模块
 const path = require('path');
@@ -18,7 +18,7 @@ function add(isPage, appJsonPath, fileName, src, dest, subPackage) {
     try {
         isPage && addAppConf(appJsonPath, fileName, subPackage);
         addFile(src, dest, fileName).then(() => {
-            consoleLog(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
+            log(`${isPage ? '页面' : '组件'} ${fileName} 创建成功`, 'success');
         });
     }
     catch (err) {
@@ -158,21 +158,44 @@ exports = module.exports = (subPackage, program) => {
         return;
     }
 
+    // 模板配置项
+    let templateConfPath = path.join(process.cwd(), '.ma-cli/template.config.json');
+    if (!util.isExist(templateConfPath)) {
+        log('请切换到工程根目录执行', 'info');
+        return;
+    }
+    let tmlConf = {};
+    try {
+        let tmlInfo = JSON.parse(fo.readFile(templateConfPath));
+        if (!tmlInfo.name) {
+            throw new Error();
+        }
+        tmlConf.name = tmlInfo.name;
+        tmlConf.pagesPath = tmlInfo.pagesPath || 'pages';
+        tmlConf.compoPath = tmlInfo.compoPath || 'components';
+        tmlConf.appJsonPath = tmlInfo.appJsonPath || 'app.json';
+    }
+    catch (err) {
+        log('模板配置文件错误', 'error');
+        return;
+    }
     // 获取配置文件路径
-    let appJsonPath = path.resolve(process.cwd(), 'app.json');
+    let appJsonPath = path.resolve(process.cwd(), tmlConf.appJsonPath);
+    // 模板路径
+    let tempFilesPath = path.join(home, `.ma-templates/${tmlConf.name}`);
 
     if (!util.isExist(appJsonPath)) {
-        consoleLog('请切换到工程根目录执行', 'info');
+        log('请切换到工程根目录执行', 'info');
         return;
     }
 
     let isPage = !!program.page;
-    // 模板路径
-    let tempFilesPath = path.join(home, '.ma-templates');
-    let src = path.resolve(tempFilesPath,
-        `${isPage ? 'pages' : 'components'}/${isPage ? 'index' : 'compo'}`);
 
-    let dirName = isPage ? (subPackage || 'pages') : 'components';
+    let src = path.resolve(tempFilesPath,
+        `${isPage ? tmlConf.pagesPath : tmlConf.compoPath}/${isPage ? 'index' : 'compo'}`);
+
+    let subPackageDir = subPackage ? tmlConf.pagesPath.replace('pages', subPackage) : '';
+    let dirName = isPage ? (subPackageDir || tmlConf.pagesPath) : tmlConf.compoPath;
     let fileName = program.page || program.component;
     // 目标路径
     let dest = path.resolve(process.cwd(), `${dirName}/${fileName}`);
