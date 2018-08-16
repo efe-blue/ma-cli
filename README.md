@@ -49,6 +49,10 @@ cli for miniapp
 >`ma upgrade --cli`
 >1. 更新模板
 
+### `.ma-cli`文件说明
+1. 此文件在初始化模板时自动创建
+2. 其中的`template.config.json`用于说明当前模板的有关配置信息
+
 ### 自动测试说明
 1. `npm install -g mocha` 全局安装mocha测试框架
 2. 在项目根目录执行`mocha` ,即可自动运行test文件夹下的所有测试脚本
