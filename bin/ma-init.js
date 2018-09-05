@@ -36,7 +36,7 @@ module.exports = function (projectName = 'dist', program) {
     }
 
     const templateName = program.template || 'origin';
-    const tempFilesPath = path.join(home, '.ma-templates');
+    const tempFilesPath = path.join(home, '.ma-templates/' + templateName);
 
     fetchTemplate(templateName, tempFilesPath)
         .then(() => inquirer.prompt([
@@ -53,7 +53,7 @@ module.exports = function (projectName = 'dist', program) {
 
             return generator(
                 metadata,
-                path.join(tempFilesPath, templateName),
+                tempFilesPath,
                 `${process.cwd()}/${projectName}`
             );
         }).then(() => {
