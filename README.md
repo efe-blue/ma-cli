@@ -38,7 +38,7 @@ cli for miniapp
 >`ma list|l --github`
 >1. 仅列出 github 模板
 
-* 更行命令
+* 更新命令
 >`ma upgrade [options]`
 >
 >**说明**
@@ -49,6 +49,11 @@ cli for miniapp
 >`ma upgrade --cli`
 >1. 更新模板
 
+### 使用示例
+1. `ma init myproject`将创建名为`myproject`的小程序原始模板
+2. `ma init myproject -t tplName`将创建名为`myproject`的小程序`tplName`模板
+3. `ma add -p|-c mypage`将创建名为`mypage`的新页面(组件)
+4. `ma add -p|-c mydir/mypage`将创建`mydir`目录并在目录中创建`mypage`页面(组件)
 ### `.ma-cli`文件说明
 1. 此文件在初始化模板时自动创建
 2. 其中的`template.config.json`用于说明当前模板的有关配置信息

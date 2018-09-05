@@ -166,11 +166,11 @@ function handleOkam(isPage, appJsonPath, fileNameArr, src, dest, subPackage) {
         return;
     }
     src = src.indexOf('index') !== -1 ? src.replace('index', 'home') : src.replace('components/compo', 'components');
-    if(fileNameArr[1] === 'default' && !isPage) {
+    if(fileNameArr[1] === fileNameArr[0] && !isPage) {
         dest = dest.replace('/' + fileNameArr[0], '');
-        fileNameArr[1] = fileNameArr[0];
         fileNameArr[0] = 'components';
     }
+    fileNameArr[1] === fileNameArr[0] && (fileNameArr[1] = 'hello')
     let swanConfPath = path.resolve(process.cwd(), 'scripts/swan.config')
     let extname = require(swanConfPath).component.extname;
     if (!util.isExist(dest + '/' + fileNameArr[1] + '.' + extname)) {
@@ -268,7 +268,7 @@ exports = module.exports = (subPackage, program) => {
     let fileName = program.page || program.component;
     // 目标路径
     let fileNameArr = fileName.split('/');
-    fileNameArr[1] || fileNameArr.push('default');
+    fileNameArr[1] || fileNameArr.push(fileNameArr[0]);
     let dest = path.resolve(process.cwd(), `${dirName}/${fileNameArr[0]}`);
 
     if (tmlConf.name === 'okam') {
