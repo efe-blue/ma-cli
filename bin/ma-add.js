@@ -16,6 +16,7 @@ const home = require('user-home');
 const acorn = require('acorn');
 const escodegen = require('escodegen');
 const rider = require('rider');
+const astNode = require('../lib/astnode');
 
 function add(isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname='') {
     try {
@@ -161,10 +162,6 @@ function rename(oldName, newName, extname) {
  * @param {string} subPackage 是否分包
  */
 function handleOkam(isPage, appJsonPath, fileNameArr, src, dest, subPackage) {
-    if (subPackage) {
-        log('暂不支持该指令', 'info');
-        return;
-    }
     src = src.indexOf('index') !== -1 ? src.replace('index', 'home') : src.replace('components/compo', 'components');
     if(fileNameArr[1] === fileNameArr[0] && !isPage) {
         dest = dest.replace('/' + fileNameArr[0], '');
@@ -194,19 +191,118 @@ function addOkamAppConf (appJsonPath, fileNameArr, subPackage) {
         onComment: comments,
         onToken: tokens
     });
-    let pagesNode = ast.body[1].declaration.properties[0].value.properties[0].value.elements;
-    let len = pagesNode.length;
-    let newNode = {
-        type: 'Literal',
-        start: pagesNode[len-1].start + 32,
-        end: pagesNode[len-1].start + 32,
-        value: 'pages/' + fileNameArr.join('/'),
-        raw: 'pages/' + fileNameArr.join('/')
+    // 查找config
+    let configVal;
+    for(let i = 0; i < ast.body[1].declaration.properties.length; i++) {
+        if(ast.body[1].declaration.properties[i].key.name === 'config') {
+            configVal = ast.body[1].declaration.properties[0].value.properties;
+            break;
+        }
     }
-    pagesNode.push(newNode);
+    if(!configVal) {
+        log('请检查配置文件', 'error');
+        return;
+    }
+    let newSubPage = 'pages/' + fileNameArr.join('/');
+    // pages
+    let pagesNode;
+    // subPackages
+    let subPkgNode;
+    for(let i = 0; i < configVal.length; i++) {
+        let keyName = configVal[i].key.name
+        // main package
+        if (!subPackage) {
+            if(keyName === 'pages') {
+                pagesNode = configVal[i].value.elements;
+                let len = pagesNode.length;
+                let newPageVal = 'pages/' + fileNameArr.join('/');
+                let newNode = astNode.createLiteral(pagesNode[len-1].start + 32, pagesNode[len-1].end + 32, newPageVal);
+                !isNodeExist(pagesNode, newNode) && pagesNode.push(newNode);
+                break;
+            }
+        }
+        // subpackage
+        else {
+            if(keyName === 'pages') {
+                pagesNode = configVal[i];
+            }
+            if(keyName === 'subPackages') {
+                subPkgNode = configVal[i].value.elements;
+                let newSubNode = astNode.createLiteral('', '', newSubPage);
+                let subPageRes = isSubPageExist(subPkgNode, subPackage, newSubNode);
+                switch (subPageRes) {
+                    case true:
+                        break;
+                    case 'noSubPkg':
+                        let subPkgProp = astNode.createSubPkg(configVal[i].value.start + 81, configVal[i].value.end + 185, subPackage, newSubPage)
+                        subPkgNode.push(subPkgProp);
+                        break;
+                    default:
+                        let subPageNode = subPkgNode[subPageRes].properties[1].value.elements;
+                        let len = subPageNode.length;
+                        newSubNode.start = subPageNode[len - 1].start + 40;
+                        newSubNode.end = subPageNode[len - 1].end + 40;
+                        subPageNode.push(newSubNode);
+                }
+                break;
+            }
+        }
+    }
+    
+    if(subPackage && !subPkgNode) {
+        let propNode = astNode.createProp(pagesNode.start + 37, pagesNode.end + 21);
+        let identiNode = astNode.createIdentifier(propNode.start, propNode.start + 11, 'subPackages');
+        let subPkgArrNode = astNode.createArr(identiNode.end + 2, identiNode + 4, '');
+        let subPkgProp = astNode.createSubPkg(subPkgArrNode.start + 81, subPkgArrNode.end + 185, subPackage, newSubPage);
+        propNode.key = identiNode;
+        subPkgArrNode.elements[0] = subPkgProp;
+        propNode.value = subPkgArrNode;
+        configVal.push(propNode);
+    }
+    // ast ==> code
     escodegen.attachComments(ast, comments, tokens);
     let newCode = escodegen.generate(ast, {comment: true});
     fo.writeFile(appJsonPath, newCode);
+}
+
+/**
+ * 新页面是否已在主包
+ * @param {Array} tree ast nodes
+ * @param {string} node 新节点
+ */
+function isNodeExist(tree, node) {
+    if (!tree || !tree.length) {
+        return false;
+    }
+    for(let i = 0; i < tree.length; i++) {
+        if(tree[i].value === node.value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * 新页面是否已在分包
+ * @param {Array} subPkgNode 分包节点
+ * @param {string} subPackage 分包名
+ * @param {Object} newSubNode 新节点
+ */
+function isSubPageExist(subPkgNode, subPackage, newSubNode) {
+    if(!subPkgNode.length) {
+        // 没有分包
+        return 'noSubPkg';
+    }
+    for(let i = 0; i < subPkgNode.length; i++) {
+        for(let j = 0; j < subPkgNode[i].properties.length; j++) {
+            if (subPkgNode[i].properties[0].value.value === subPackage) {
+                // 1.分包和页面都存在 2.分包存在 页面不存在
+                return isNodeExist(subPkgNode[i].properties[1].value.elements, newSubNode) ? true : i;
+            }
+        }
+
+    }
+    return 'noSubPkg';
 }
 
 /**
