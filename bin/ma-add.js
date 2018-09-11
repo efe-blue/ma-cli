@@ -16,11 +16,11 @@ const home = require('user-home');
 const acorn = require('acorn');
 const escodegen = require('escodegen');
 const rider = require('rider');
-const astNode = require('../lib/astnode');
+const handleAstNode = require('../lib/handleastnode');
 
-function add(isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname='') {
+function add(tmlName, isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname='') {
     try {
-        isPage && addAppConf(appJsonPath, fileNameArr, subPackage);
+        isPage && addAppConf(tmlName, appJsonPath, fileNameArr, subPackage);
         addFile(src, dest, fileNameArr, extname).then(() => {
             log(`${isPage ? '页面' : '组件'} ${fileNameArr.join('/')} 创建成功`, 'success');
         });
@@ -30,9 +30,9 @@ function add(isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname=''
     }
 }
 
-function addAppConf(appJsonPath, fileNameArr, subPackage) {
+function addAppConf(tmlName, appJsonPath, fileNameArr, subPackage) {
     // okam配置写入
-    if (/app\.js$/g.test(appJsonPath)) {
+    if (tmlName === 'okam') {
         addOkamAppConf(appJsonPath, fileNameArr, subPackage);
         return;
     }
@@ -161,7 +161,7 @@ function rename(oldName, newName, extname) {
  * @param {string} dest 目标路径
  * @param {string} subPackage 是否分包
  */
-function handleOkam(isPage, appJsonPath, fileNameArr, src, dest, subPackage) {
+function handleOkam(tmlName, isPage, appJsonPath, fileNameArr, src, dest, subPackage) {
     src = src.indexOf('index') !== -1 ? src.replace('index', 'home') : src.replace('components/compo', 'components');
     if(fileNameArr[1] === fileNameArr[0] && !isPage) {
         dest = dest.replace('/' + fileNameArr[0], '');
@@ -171,13 +171,13 @@ function handleOkam(isPage, appJsonPath, fileNameArr, src, dest, subPackage) {
     let swanConfPath = path.resolve(process.cwd(), 'scripts/swan.config')
     let extname = require(swanConfPath).component.extname;
     if (!util.isExist(dest + '/' + fileNameArr[1] + '.' + extname)) {
-        add(isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname);
+        add(tmlName, isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname);
         return;
     }
 
     interact('文件已存在，是否覆盖？', 'confirm')
         .then(answer => {
-            answer.ans && add(isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname);
+            answer.ans && add(tmlName, isPage, appJsonPath, fileNameArr, src, dest, subPackage, extname);
         });
 
 }
@@ -193,9 +193,10 @@ function addOkamAppConf (appJsonPath, fileNameArr, subPackage) {
     });
     // 查找config
     let configVal;
-    for(let i = 0; i < ast.body[1].declaration.properties.length; i++) {
-        if(ast.body[1].declaration.properties[i].key.name === 'config') {
-            configVal = ast.body[1].declaration.properties[0].value.properties;
+    let bodyProp = ast.body[1].declaration.properties;
+    for(let i = 0, len = bodyProp.length; i < len; i++) {
+        if(bodyProp[i].key.name === 'config') {
+            configVal = bodyProp[0].value.properties;
             break;
         }
     }
@@ -203,65 +204,64 @@ function addOkamAppConf (appJsonPath, fileNameArr, subPackage) {
         log('请检查配置文件', 'error');
         return;
     }
-    let newSubPage = 'pages/' + fileNameArr.join('/');
-    // pages
-    let pagesNode;
-    // subPackages
-    let subPkgNode;
-    for(let i = 0; i < configVal.length; i++) {
-        let keyName = configVal[i].key.name
-        // main package
-        if (!subPackage) {
-            if(keyName === 'pages') {
-                pagesNode = configVal[i].value.elements;
-                let len = pagesNode.length;
-                let newPageVal = 'pages/' + fileNameArr.join('/');
-                let newNode = astNode.createLiteral(pagesNode[len-1].start + 32, pagesNode[len-1].end + 32, newPageVal);
-                !isNodeExist(pagesNode, newNode) && pagesNode.push(newNode);
-                break;
-            }
-        }
-        // subpackage
-        else {
-            if(keyName === 'pages') {
-                pagesNode = configVal[i];
-            }
-            if(keyName === 'subPackages') {
-                subPkgNode = configVal[i].value.elements;
-                let newSubNode = astNode.createLiteral('', '', newSubPage);
-                let subPageRes = isSubPageExist(subPkgNode, subPackage, newSubNode);
-                switch (subPageRes) {
-                    case true:
-                        break;
-                    case 'noSubPkg':
-                        let subPkgProp = astNode.createSubPkg(configVal[i].value.start + 81, configVal[i].value.end + 185, subPackage, newSubPage)
-                        subPkgNode.push(subPkgProp);
-                        break;
-                    default:
-                        let subPageNode = subPkgNode[subPageRes].properties[1].value.elements;
-                        let len = subPageNode.length;
-                        newSubNode.start = subPageNode[len - 1].start + 40;
-                        newSubNode.end = subPageNode[len - 1].end + 40;
-                        subPageNode.push(newSubNode);
-                }
-                break;
-            }
-        }
-    }
+    let newPage = 'pages/' + fileNameArr.join('/');
+    let pagesNode = handleAstNode.getNode(configVal, 'pages');
+    let pageElements = pagesNode.value.elements;
     
-    if(subPackage && !subPkgNode) {
-        let propNode = astNode.createProp(pagesNode.start + 37, pagesNode.end + 21);
-        let identiNode = astNode.createIdentifier(propNode.start, propNode.start + 11, 'subPackages');
-        let subPkgArrNode = astNode.createArr(identiNode.end + 2, identiNode + 4, '');
-        let subPkgProp = astNode.createSubPkg(subPkgArrNode.start + 81, subPkgArrNode.end + 185, subPackage, newSubPage);
-        propNode.key = identiNode;
-        subPkgArrNode.elements[0] = subPkgProp;
-        propNode.value = subPkgArrNode;
-        configVal.push(propNode);
+    // main package
+    if (!subPackage) {
+        let newPageNode = handleAstNode.createPageNode(pageElements, newPage);
+        !isNodeExist(pageElements, newPageNode) && pageElements.push(newPageNode);
+        writeToAppjs(ast, comments, tokens, appJsonPath);
+        return;
     }
-    // ast ==> code
+
+    // subPackage
+    let subPkgNode = handleAstNode.getNode(configVal, 'subPackages');
+
+    // subPackages 字段不存在
+    if (!subPkgNode) {
+        let subPkgArr = handleAstNode.createSubPkgArr(pagesNode);
+        configVal.push(subPkgArr);
+    }
+    // subPackages 字段存在
+    else {
+        let subPkgElements = subPkgNode.value.elements;
+        let newSubPkgPageNode = handleAstNode.createPageNode('', newPage);
+        let subPageRes = isSubPkgExist(subPkgElements, subPackage, newSubPkgPageNode);
+    
+        switch (subPageRes) {
+            // root and page
+            case true:
+                break;
+            // no root
+            case 'noSubPkg':
+                let subPkgProp = handleAstNode.createSubPkg(subPkgNode, subPackage, newPage);
+                subPkgElements.push(subPkgProp);
+                break;
+            // no page
+            default:
+                let subPageNode = subPkgElements[subPageRes].properties[1].value.elements;
+                let len = subPageNode.length;
+                newSubPkgPageNode.start = subPageNode[len - 1].start + 40;
+                newSubPkgPageNode.end = subPageNode[len - 1].end + 40;
+                subPageNode.push(newSubPkgPageNode);
+        }
+    }
+
+    writeToAppjs(ast, comments, tokens, appJsonPath);
+}
+
+/**
+ * ast ==> code
+ * @param {Object} ast ast对象 
+ * @param {Object} comments 注释
+ * @param {Object} tokens
+ * @param {string} appJsonPath appjs路径
+ */
+function writeToAppjs(ast, comments, tokens, appJsonPath) {
     escodegen.attachComments(ast, comments, tokens);
-    let newCode = escodegen.generate(ast, {comment: true});
+    let newCode = escodegen.generate(ast, { comment: true });
     fo.writeFile(appJsonPath, newCode);
 }
 
@@ -288,7 +288,7 @@ function isNodeExist(tree, node) {
  * @param {string} subPackage 分包名
  * @param {Object} newSubNode 新节点
  */
-function isSubPageExist(subPkgNode, subPackage, newSubNode) {
+function isSubPkgExist(subPkgNode, subPackage, newSubNode) {
     if(!subPkgNode.length) {
         // 没有分包
         return 'noSubPkg';
@@ -368,18 +368,18 @@ exports = module.exports = (subPackage, program) => {
     let dest = path.resolve(process.cwd(), `${dirName}/${fileNameArr[0]}`);
 
     if (tmlConf.name === 'okam') {
-        handleOkam(isPage, appJsonPath, fileNameArr, src, dest, subPackage);
+        handleOkam(tmlConf.name, isPage, appJsonPath, fileNameArr, src, dest, subPackage);
         return;
     }
 
     if (!util.isExist(dest + '/' + fileNameArr[1] + '.swan')) {
-        add(isPage, appJsonPath, fileNameArr, src, dest, subPackage);
+        add(tmlConf.name, isPage, appJsonPath, fileNameArr, src, dest, subPackage);
         return;
     }
 
     interact('文件已存在，是否覆盖？', 'confirm')
         .then(answer => {
-            answer.ans && add(isPage, appJsonPath, fileNameArr, src, dest, subPackage);
+            answer.ans && add(tmlConf.name, isPage, appJsonPath, fileNameArr, src, dest, subPackage);
         });
 
 };
