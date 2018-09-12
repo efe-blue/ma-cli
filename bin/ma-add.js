@@ -206,12 +206,11 @@ function addOkamAppConf (appJsonPath, fileNameArr, subPackage) {
     }
     let newPage = 'pages/' + fileNameArr.join('/');
     let pagesNode = handleAstNode.getNode(configVal, 'pages');
-    let pageElements = pagesNode.value.elements;
     
     // main package
     if (!subPackage) {
-        let newPageNode = handleAstNode.createPageNode(pageElements, newPage);
-        !isNodeExist(pageElements, newPageNode) && pageElements.push(newPageNode);
+        let newPageNode = handleAstNode.createPageNode(newPage, pagesNode);
+        handleAstNode.addPageNode(pagesNode, newPageNode);
         writeToAppjs(ast, comments, tokens, appJsonPath);
         return;
     }
@@ -221,31 +220,30 @@ function addOkamAppConf (appJsonPath, fileNameArr, subPackage) {
 
     // subPackages 字段不存在
     if (!subPkgNode) {
-        let subPkgArr = handleAstNode.createSubPkgArr(pagesNode);
+        let subPkgArr = handleAstNode.createSubPkgArr(pagesNode, subPackage, newPage);
         configVal.push(subPkgArr);
     }
     // subPackages 字段存在
     else {
-        let subPkgElements = subPkgNode.value.elements;
-        let newSubPkgPageNode = handleAstNode.createPageNode('', newPage);
-        let subPageRes = isSubPkgExist(subPkgElements, subPackage, newSubPkgPageNode);
-    
-        switch (subPageRes) {
-            // root and page
-            case true:
-                break;
-            // no root
-            case 'noSubPkg':
-                let subPkgProp = handleAstNode.createSubPkg(subPkgNode, subPackage, newPage);
-                subPkgElements.push(subPkgProp);
-                break;
-            // no page
-            default:
-                let subPageNode = subPkgElements[subPageRes].properties[1].value.elements;
-                let len = subPageNode.length;
-                newSubPkgPageNode.start = subPageNode[len - 1].start + 40;
-                newSubPkgPageNode.end = subPageNode[len - 1].end + 40;
-                subPageNode.push(newSubPkgPageNode);
+        let subPkgNodeInnerArr = subPkgNode.value.elements;
+        let subPkgExist = handleAstNode.isSubPkgExist(subPkgNodeInnerArr, subPackage);
+        // 分包是否存在
+        if(!subPkgExist) {
+            let subPkgProp = handleAstNode.createSubPkg(subPkgNode, subPackage, newPage);
+            subPkgNodeInnerArr.push(subPkgProp);
+        }
+        else {
+            let newSubPkgPageNode = handleAstNode.createPageNode(newPage);
+            let subPkgIndex = handleAstNode.getAstSubPkgIndex(subPkgNode, subPackage);
+            let subPkgNodeValueInnerArr = subPkgNodeInnerArr[subPkgIndex].properties[1].value.elements;
+            let subPkgPageExist = handleAstNode.isNodeExist(subPkgNodeValueInnerArr, newSubPkgPageNode);
+            // 页面是否存在
+            if(!subPkgPageExist) {
+                let len = subPkgNodeValueInnerArr.length;
+                newSubPkgPageNode.start = subPkgNodeValueInnerArr[len - 1].start + 40;
+                newSubPkgPageNode.end = subPkgNodeValueInnerArr[len - 1].end + 40;
+                subPkgNodeValueInnerArr.push(newSubPkgPageNode);
+            }
         }
     }
 
@@ -263,46 +261,6 @@ function writeToAppjs(ast, comments, tokens, appJsonPath) {
     escodegen.attachComments(ast, comments, tokens);
     let newCode = escodegen.generate(ast, { comment: true });
     fo.writeFile(appJsonPath, newCode);
-}
-
-/**
- * 新页面是否已在主包
- * @param {Array} tree ast nodes
- * @param {string} node 新节点
- */
-function isNodeExist(tree, node) {
-    if (!tree || !tree.length) {
-        return false;
-    }
-    for(let i = 0; i < tree.length; i++) {
-        if(tree[i].value === node.value) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * 新页面是否已在分包
- * @param {Array} subPkgNode 分包节点
- * @param {string} subPackage 分包名
- * @param {Object} newSubNode 新节点
- */
-function isSubPkgExist(subPkgNode, subPackage, newSubNode) {
-    if(!subPkgNode.length) {
-        // 没有分包
-        return 'noSubPkg';
-    }
-    for(let i = 0; i < subPkgNode.length; i++) {
-        for(let j = 0; j < subPkgNode[i].properties.length; j++) {
-            if (subPkgNode[i].properties[0].value.value === subPackage) {
-                // 1.分包和页面都存在 2.分包存在 页面不存在
-                return isNodeExist(subPkgNode[i].properties[1].value.elements, newSubNode) ? true : i;
-            }
-        }
-
-    }
-    return 'noSubPkg';
 }
 
 /**
